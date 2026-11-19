@@ -3,10 +3,10 @@ from agents import RouterAgent
 
 
 class MainWorkflow:
-    def __init__(self):
-        self.intake = RouterAgent("FAST_SWARM")
-        self.execution = RouterAgent("CODE_FORGE")
-        self.verification = RouterAgent("LOGIC_CORE")
+    def __init__(self, runtime=None, router=None):
+        self.intake = RouterAgent("FAST_SWARM", router=router, runtime=runtime)
+        self.execution = RouterAgent("CODE_FORGE", router=router, runtime=runtime)
+        self.verification = RouterAgent("LOGIC_CORE", router=router, runtime=runtime)
 
     def run(self, request: str) -> dict:
         if not isinstance(request, str) or not request.strip():
