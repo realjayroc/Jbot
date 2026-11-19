@@ -58,6 +58,19 @@ class RouterTests(unittest.TestCase):
         self.assertEqual(result["provider"], "b")
         self.assertEqual(len([call for call in calls if "a.test" in call[0]]), 2)
 
+    def test_rate_limited_route_becomes_available_after_cooldown(self):
+        limited = OmniRouter(self.path, opener=lambda request, timeout: (_ for _ in ()).throw(
+            HTTPError(request.full_url, 429, "limited", {}, None)))
+        with patch("omni_router.time.monotonic", return_value=100):
+            with self.assertRaises(RouterError):
+                limited.dispatch("test", override_provider="a", override_model="a-model")
+        with patch("omni_router.time.monotonic", return_value=161):
+            recovered = OmniRouter(self.path, opener=lambda request, timeout: FakeResponse(
+                {"choices": [{"message": {"content": "recovered"}}]}))
+            limited._opener = recovered._opener
+            result = limited.dispatch("test", override_provider="a", override_model="a-model")
+        self.assertEqual(result["content"], "recovered")
+
     def test_missing_keys_fail_safely(self):
         with patch.dict("os.environ", {"A_API_KEYS": "", "B_API_KEYS": ""}):
             with self.assertRaises(RouterError):

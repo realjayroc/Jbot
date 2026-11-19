@@ -11,6 +11,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+from security_vault import SecurityVault
+
 CONFIG_PATH = Path(os.getenv("J_BOT_MODELS_CONFIG", Path(__file__).with_name("models_config.json")))
 
 
@@ -26,6 +28,7 @@ class OmniRouter:
         self._key_indexes: dict[str, int] = {}
         self._health: dict[str, dict[str, Any]] = {}
         self._cooldowns: dict[tuple[str, str], float] = {}
+        self._vault = SecurityVault()
 
     def _config(self) -> dict[str, Any]:
         try:
@@ -33,23 +36,25 @@ class OmniRouter:
                 config = json.load(handle)
         except (OSError, json.JSONDecodeError) as exc:
             raise RouterError(f"Cannot load model configuration: {exc}") from exc
-        if not isinstance(config.get("providers"), dict) or not isinstance(config.get("roles"), dict):
+        if not isinstance(config, dict) or not isinstance(config.get("providers"), dict) or not isinstance(config.get("roles"), dict):
             raise RouterError("Model configuration must define provider and role mappings")
         return config
 
-    @staticmethod
-    def _keys(provider: dict[str, Any]) -> list[str | None]:
+    def _keys(self, provider: dict[str, Any]) -> list[str | None]:
         env_name = provider.get("key_env")
         if not env_name:
             return [None]
-        values = os.getenv(env_name, "")
-        keys = [value.strip() for value in values.split(",") if value.strip()]
-        if not keys:
-            singular = env_name.replace("_API_KEYS", "_API_KEY")
-            if singular != env_name:
-                values = os.getenv(singular, "")
-                keys = [value.strip() for value in values.split(",") if value.strip()]
+        keys = self._vault.get_key_ring(env_name)
         return keys
+
+    def _cooling_down(self, provider: str, model: str) -> bool:
+        key = (provider, model)
+        with self._lock:
+            until = self._cooldowns.get(key, 0)
+            if until <= time.monotonic():
+                self._cooldowns.pop(key, None)
+                return False
+            return True
 
     def _next_key(self, name: str, keys: list[str | None]) -> str | None:
         if keys == [None]:
@@ -81,7 +86,7 @@ class OmniRouter:
                 candidates = [pair for pair in candidates if pair[1] == model_override]
         return [(name, model) for name, model in candidates
                 if config["providers"].get(name, {}).get("enabled", True)
-                and (name, model) not in self._cooldowns]
+                and not self._cooling_down(name, model)]
 
     def _call(self, provider_name: str, model: str, provider: dict[str, Any], key: str | None,
               prompt: str, config: dict[str, Any]) -> tuple[str, dict[str, Any]]:

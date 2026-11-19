@@ -1,0 +1,7 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+jroc_core.db
+jroc_core.db-shm
+jroc_core.db-wal
