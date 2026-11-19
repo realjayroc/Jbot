@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "primary": {"provider": "openrouter", "model": "qwen/qwen-2.5-coder-32b-instruct:free"},
+  "roles": {
+    "CODE_FORGE": [{"provider": "openrouter", "model": "qwen/qwen-2.5-coder-32b-instruct:free"}, {"provider": "groq", "model": "llama-3.3-70b-versatile"}, {"provider": "github_models", "model": "gpt-4o-mini"}, {"provider": "ollama", "model": "qwen2.5-coder:7b"}],
+    "LOGIC_CORE": [{"provider": "openrouter", "model": "deepseek/deepseek-r1:free"}, {"provider": "google", "model": "gemini-2.5-flash"}, {"provider": "groq", "model": "qwen-qwq-32b"}, {"provider": "ollama", "model": "deepseek-r1:8b"}],
+    "FAST_SWARM": [{"provider": "groq", "model": "llama-3.1-8b-instant"}, {"provider": "google", "model": "gemini-2.0-flash"}, {"provider": "cerebras", "model": "llama-3.3-70b"}, {"provider": "ollama", "model": "llama3.2:latest"}],
+    "CREATIVE_RAW": [{"provider": "openrouter", "model": "meta-llama/llama-3.3-70b-instruct:free"}, {"provider": "openrouter", "model": "google/gemma-3-27b-it:free"}, {"provider": "mistral", "model": "mistral-small-latest"}, {"provider": "sambanova", "model": "Meta-Llama-3.3-70B-Instruct"}],
+    "OFFLINE_LOCAL": [{"provider": "ollama", "model": "qwen2.5-coder:7b"}, {"provider": "ollama", "model": "deepseek-r1:8b"}, {"provider": "ollama", "model": "llama3.2:latest"}]
+  },
+  "providers": {
+    "openrouter": {"enabled": true, "protocol": "openai", "base_url": "https://openrouter.ai/api/v1/chat/completions", "key_env": "OPENROUTER_API_KEYS", "models": ["qwen/qwen-2.5-coder-32b-instruct:free", "deepseek/deepseek-r1:free", "meta-llama/llama-3.3-70b-instruct:free", "google/gemma-3-27b-it:free"]},
+    "google": {"enabled": true, "protocol": "google", "base_url": "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent", "key_env": "GOOGLE_API_KEYS", "models": ["gemini-2.5-flash", "gemini-2.0-flash"]},
+    "groq": {"enabled": true, "protocol": "openai", "base_url": "https://api.groq.com/openai/v1/chat/completions", "key_env": "GROQ_API_KEYS", "models": ["llama-3.3-70b-versatile", "qwen-qwq-32b", "llama-3.1-8b-instant"]},
+    "github_models": {"enabled": true, "protocol": "openai", "base_url": "https://models.github.ai/inference/chat/completions", "key_env": "GITHUB_TOKEN", "models": ["gpt-4o-mini", "Meta-Llama-3.3-70B-Instruct", "DeepSeek-R1"]},
+    "cerebras": {"enabled": true, "protocol": "openai", "base_url": "https://api.cerebras.ai/v1/chat/completions", "key_env": "CEREBRAS_API_KEYS", "models": ["llama-3.3-70b"]},
+    "mistral": {"enabled": true, "protocol": "openai", "base_url": "https://api.mistral.ai/v1/chat/completions", "key_env": "MISTRAL_API_KEYS", "models": ["mistral-small-latest"]},
+    "sambanova": {"enabled": true, "protocol": "openai", "base_url": "https://api.sambanova.ai/v1/chat/completions", "key_env": "SAMBANOVA_API_KEYS", "models": ["Meta-Llama-3.3-70B-Instruct"]},
+    "ollama": {"enabled": true, "protocol": "openai", "base_url": "http://localhost:11434/v1/chat/completions", "key_env": null, "models": ["qwen2.5-coder:7b", "deepseek-r1:8b", "llama3.2:latest"]}
+  },
+  "request": {"timeout_seconds": 30, "max_tokens": 2048, "temperature": 0.2}
+}
